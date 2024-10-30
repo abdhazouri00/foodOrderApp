@@ -1,0 +1,41 @@
+[
+  {
+    "items": ["nmar"],
+    "customer": {
+      "email": "customer@example.com",
+      "name": "Customer Name",
+      "street": "Customer Street",
+      "postal-code": "12345",
+      "city": "Customer City"
+    },
+    "id": "854.2963846799387"
+  },
+  {
+    "items": [
+      { "name": "Mac & Cheese", "price": "8.99", "quantity": 1 },
+      { "name": "Margherita Pizza", "price": "12.99", "quantity": 1 }
+    ],
+    "customer": {
+      "email": "abdhazouritr@gmail.com",
+      "name": "Abdullah Hazuri",
+      "street": "olaya",
+      "postal-code": "22451",
+      "city": "Riyadh"
+    },
+    "id": "214.59009259290673"
+  },
+  {
+    "items": [
+      { "name": "Margherita Pizza", "price": "12.99", "quantity": 1 },
+      { "name": "Mac & Cheese", "price": "8.99", "quantity": 1 }
+    ],
+    "customer": {
+      "email": "abdhazouritr@gmail.com",
+      "name": "Abdullah Hazuri",
+      "street": "olaya",
+      "postal-code": "22451",
+      "city": "Riyadh"
+    },
+    "id": "307.25894852983515"
+  }
+]
