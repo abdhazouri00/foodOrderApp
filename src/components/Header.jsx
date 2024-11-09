@@ -1,17 +1,33 @@
-import "../index.css";
-import logo from "../assets/logo.jpg";
+import { useContext } from "react";
+import img from "../assets/logo.jpg";
+import Button from "./UI/Button";
+import CartContext from "./store/CartContext";
+import UserProgressContext from "./store/UserProgressContext";
 
-function Header({ itemsLength, openModal }) {
+function Header() {
+  const cartCtx = useContext(CartContext);
+  const userProgressCtx = useContext(UserProgressContext);
+
+  const totalCartItems = cartCtx.items.reduce((totalNumberOfItems, item) => {
+    return totalNumberOfItems + item.quantity;
+  }, 0);
+
+  function handleShowCart() {
+    userProgressCtx.showCart();
+  }
+
   return (
-    <div id="main-header">
+    <header id="main-header">
       <div id="title">
-        <img src={logo} />
-        <h1>REACTFOOD</h1>
+        <img src={img} />
+        <h1>REACT FOOD</h1>
       </div>
-      <button className="button" onClick={openModal}>
-        <h1>Cart({itemsLength})</h1>
-      </button>
-    </div>
+      <nav>
+        <Button textOnly onClick={handleShowCart}>
+          Cart({totalCartItems})
+        </Button>
+      </nav>
+    </header>
   );
 }
 

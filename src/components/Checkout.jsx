@@ -1,114 +1,67 @@
-import React, { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import axios from "axios";
+import { useContext } from "react";
+import Modal from "./UI/Modal";
+import CartContext from "./store/CartContext";
+import { currencyFormatter } from "../util/foramtting";
+import Input from "./UI/Input";
+import Button from "./UI/Button";
+import UserProgressContext from "./store/UserProgressContext";
+import axios, { AxiosHeaders } from "axios";
 
-function Checkout({ isOpen, onClose, total, orders }) {
-  const dialog = useRef();
+export default function Checkout() {
+  const cartCtx = useContext(CartContext);
+  const userProgressCtx = useContext(UserProgressContext);
 
-  const [fullName, setFullName] = useState("");
-  const [emailAdress, setEmailAdress] = useState("");
-  const [street, setStreet] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [city, setCity] = useState("");
+  const cartTotal = cartCtx.items.reduce(
+    (totalPrice, item) => totalPrice + item.quantity * item.price,
+    0
+  );
 
-  useEffect(() => {
-    if (isOpen) {
-      if (dialog.current.open) {
-        dialog.current.close();
-      }
-      dialog.current.showModal();
-    } else {
-      dialog.current.close();
-    }
-  }, [isOpen]);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    await axios.post("http://localhost:3000/orders", {
-      order: {
-        items: orders,
-        customer: {
-          email: emailAdress,
-          name: fullName,
-          street: street,
-          "postal-code": postalCode,
-          city: city,
-        },
-      },
-    });
-
-    onClose();
+  function handleClose() {
+    userProgressCtx.hideCheckout();
   }
 
-  return createPortal(
-    <dialog ref={dialog} open={isOpen} className="modal Cart">
-      <h2>Checkout</h2>
-      <p>Total Amount : ${total}</p>
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    const fd = new FormData(e.target);
+    const customerData = Object.fromEntries(fd.entries());
+
+    axios.post(
+      "http://localhost:3000/orders",
+      {
+        order: {
+          items: cartCtx.items,
+          customer: customerData,
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  }
+
+  return (
+    <Modal open={userProgressCtx.progress === "checkout"} onClose={handleClose}>
       <form onSubmit={handleSubmit}>
-        <div className="control">
-          <div className="control">
-            <label htmlFor="full-name">Full Name</label>
-            <input
-              id="full-name"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-          </div>
-
-          <div className="control">
-            <label htmlFor="email"> Email Adress</label>
-            <input
-              id="email"
-              type="email"
-              value={emailAdress}
-              onChange={(e) => setEmailAdress(e.target.value)}
-            />
-          </div>
-
-          <div className="control">
-            <label htmlFor="Street">Street</label>
-            <input
-              id="Street"
-              type="text"
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-            />
-          </div>
-          <div className="control-row">
-            <div className="control">
-              <label htmlFor="Postal">Postal Code</label>
-              <input
-                id="Postal"
-                type="text"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-              />
-            </div>
-
-            <div className="control">
-              <label htmlFor="City">City</label>
-              <input
-                id="City"
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-              />
-            </div>
-          </div>
+        <h2>Checkout</h2>
+        <p>Total Amount: {currencyFormatter.format(cartTotal)}</p>
+        <Input label="Full Name" type="text" id="name" />
+        <Input label="Email Address" type="email" id="email" />
+        <Input label="Street" type="text" id="street" />
+        <div className="control-row">
+          <Input label="Postal Code" type="text" id="postal-code" />
+          <Input label="City" type="text" id="city" />
         </div>
 
-        <div className="modal-actions">
-          <button className="text-button" onClick={onClose}>
+        <p className="modal-actions">
+          <Button type="button" textOnly onClick={handleClose}>
             Close
-          </button>
-          <button className="button">Submit Order</button>
-        </div>
+          </Button>
+          <Button>Submit Order</Button>
+        </p>
       </form>
-    </dialog>,
-    document.getElementById("modal")
+    </Modal>
   );
 }
-Checkout;
-export default Checkout;

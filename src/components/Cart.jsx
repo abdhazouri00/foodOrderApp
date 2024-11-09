@@ -1,65 +1,57 @@
-import React, { useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useContext } from "react";
 
-function Cart({
-  isOpen,
-  onClose,
-  orders,
-  addQuantity,
-  subtractQuantity,
-  openCheckout,
-  getTotal,
-}) {
-  const dialog = useRef();
+import Modal from "./UI/Modal.jsx";
+import CartContext from "./store/CartContext.jsx";
+import Button from "./UI/Button.jsx";
+import { currencyFormatter } from "../util/foramtting.js";
+import UserProgressContext from "./store/UserProgressContext.jsx";
+import CartItem from "./CartItem.jsx";
 
-  useEffect(() => {
-    if (isOpen) {
-      dialog.current.showModal();
-    } else {
-      dialog.current.close();
-    }
-  }, [isOpen]);
+export default function Cart() {
+  const cartCtx = useContext(CartContext);
+  const userProgressCtx = useContext(UserProgressContext);
 
-  const total = orders.reduce(
-    (acc, order) => acc + order.price * order.quantity,
+  const cartTotal = cartCtx.items.reduce(
+    (totalPrice, item) => totalPrice + item.quantity * item.price,
     0
   );
 
-  useEffect(() => {
-    getTotal(total);
-  }, [total, getTotal]);
+  function handleCloseCart() {
+    userProgressCtx.hideCart();
+  }
 
-  return createPortal(
-    <dialog ref={dialog} className="modal Cart">
+  function handleGoToCheckout() {
+    userProgressCtx.showCheckout();
+  }
+
+  return (
+    <Modal
+      className="cart"
+      open={userProgressCtx.progress === "cart"}
+      onClose={userProgressCtx.progress === "cart" ? handleCloseCart : null}
+    >
       <h2>Your Cart</h2>
       <ul>
-        {orders.map((order, index) => {
-          return (
-            <li className="cart-item" key={index}>
-              <p>
-                {order.name} - ${order.price}
-              </p>
-              <div className="cart-item-actions">
-                <button onClick={() => subtractQuantity(index)}>-</button>
-                {order.quantity}
-                <button onClick={() => addQuantity(index)}>+</button>
-              </div>
-            </li>
-          );
-        })}
+        {cartCtx.items.map((item) => (
+          <CartItem
+            key={item.id}
+            name={item.name}
+            quantity={item.quantity}
+            price={item.price}
+            onIncrease={() => cartCtx.addItem(item)}
+            onDecrease={() => cartCtx.removeItem(item.id)}
+          />
+        ))}
       </ul>
-      <div className="cart-total">${total.toFixed(2)}</div>
-      <div className="modal-actions">
-        <button className="text-button" onClick={onClose}>
+      <p className="cart-total">{currencyFormatter.format(cartTotal)}</p>
+      <p className="modal-actions">
+        <Button textOnly onClick={handleCloseCart}>
           Close
-        </button>
-        <button className="button" onClick={openCheckout}>
-          Go to Checkout
-        </button>
-      </div>
-    </dialog>,
-    document.getElementById("modal")
+        </Button>
+        {cartCtx.items.length > 0 ? (
+          <Button onClick={handleGoToCheckout}>Go to Checkout</Button>
+        ) : null}
+      </p>
+    </Modal>
   );
 }
-
-export default Cart;
